@@ -115,6 +115,30 @@ const NewsForm = ({ initialData, onSubmit }: NewsFormProps) => {
               onChange={(e) => handleInputChange('thumbnail', e.target.value)}
               placeholder="https://example.com/image.jpg"
             />
+            {formData.thumbnail && (
+              <div className="mt-3">
+                <Label className="text-sm text-muted-foreground">Preview:</Label>
+                <div className="mt-1">
+                  <img
+                    src={formData.thumbnail}
+                    alt="Thumbnail preview"
+                    className="w-32 h-32 object-cover rounded-md border"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const errorMsg = e.currentTarget.nextSibling as HTMLElement;
+                      if (errorMsg) errorMsg.style.display = 'block';
+                    }}
+                    onLoad={(e) => {
+                      const errorMsg = e.currentTarget.nextSibling as HTMLElement;
+                      if (errorMsg) errorMsg.style.display = 'none';
+                    }}
+                  />
+                  <p className="text-xs text-red-500 mt-1 hidden">
+                    Failed to load image. Please check the URL.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
