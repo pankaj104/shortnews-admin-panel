@@ -1,8 +1,8 @@
-
 import { Outlet } from "react-router-dom"
 import { useState } from "react"
 import Sidebar from "./Sidebar"
 import Header from "./Header"
+import { useAuth } from "@/contexts/AuthContext"
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true)

@@ -9,25 +9,34 @@ import { useTheme } from "@/components/ThemeProvider"
 import { useAuth } from "@/contexts/AuthContext"
 import { Sun, Moon, FileText, AlertCircle } from "lucide-react"
 
-const Login = () => {
+const Signup = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { signup } = useAuth()
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match")
+    }
+
+    if (password.length < 6) {
+      return setError("Password must be at least 6 characters")
+    }
+
     try {
       setError("")
       setLoading(true)
-      await login(email, password)
+      await signup(email, password)
       navigate("/")
     } catch (error: any) {
-      setError(error.message || "Failed to sign in")
+      setError(error.message || "Failed to create account")
     } finally {
       setLoading(false)
     }
@@ -57,9 +66,9 @@ const Login = () => {
                 <FileText className="w-8 h-8 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">ShortNews Admin</CardTitle>
+            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
             <CardDescription>
-              Sign in to access the admin panel
+              Sign up for ShortNews Admin Panel
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,15 +101,26 @@ const Login = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? "Creating Account..." : "Sign Up"}
               </Button>
             </form>
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link to="/signup" className="text-primary hover:underline">
-                  Sign up
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary hover:underline">
+                  Sign in
                 </Link>
               </p>
             </div>
@@ -111,4 +131,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default Signup 

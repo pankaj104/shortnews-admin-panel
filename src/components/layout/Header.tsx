@@ -1,7 +1,7 @@
-
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/ThemeProvider"
-import { Menu, Sun, Moon, Bell, User } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { Menu, Sun, Moon, Bell, User, LogOut } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,15 @@ interface HeaderProps {
 
 const Header = ({ onMenuClick }: HeaderProps) => {
   const { theme, setTheme } = useTheme()
+  const { logout, currentUser } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error("Failed to log out:", error)
+    }
+  }
 
   return (
     <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm">
@@ -55,6 +64,10 @@ const Header = ({ onMenuClick }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem disabled>
+                {currentUser?.email || "User"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 Profile Settings
               </DropdownMenuItem>
@@ -62,7 +75,8 @@ const Header = ({ onMenuClick }: HeaderProps) => {
                 Language
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
