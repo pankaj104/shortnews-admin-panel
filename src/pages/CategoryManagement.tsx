@@ -1,5 +1,4 @@
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,70 +13,18 @@ import {
   TableRow 
 } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, Tags } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Plus, Edit, Trash2, Tags, AlertCircle, Loader2 } from "lucide-react"
+import { categoryService, Category } from "@/lib/categoryService"
 
-interface Category {
-  id: string
-  name: string
-  nameHindi: string
-  description: string
-  articleCount: number
-  isActive: boolean
-  createdAt: string
-}
+type CategoryWithCount = Category & { articleCount: number }
 
 const CategoryManagement = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-
-  // Mock data
-  const [categories, setCategories] = useState<Category[]>([
-    {
-      id: "1",
-      name: "Politics",
-      nameHindi: "राजनीति",
-      description: "Political news and government updates",
-      articleCount: 145,
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "2",
-      name: "Sports",
-      nameHindi: "खेल",
-      description: "Sports news, matches, and player updates",
-      articleCount: 89,
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "3", 
-      name: "Technology",
-      nameHindi: "प्रौद्योगिकी",
-      description: "Tech news, gadgets, and innovations",
-      articleCount: 67,
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "4",
-      name: "Entertainment",
-      nameHindi: "मनोरंजन", 
-      description: "Movies, TV shows, celebrity news",
-      articleCount: 234,
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "5",
-      name: "Business",
-      nameHindi: "व्यापार",
-      description: "Business news, market updates, economy",
-      articleCount: 112,
-      isActive: false,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-  ])
+  const [editingCategory, setEditingCategory] = useState<CategoryWithCount | null>(null)
+  const [categories, setCategories] = useState<CategoryWithCount[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -86,37 +33,80 @@ const CategoryManagement = () => {
     isActive: true,
   })
 
-  const handleCreateCategory = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newCategory: Category = {
-      id: Date.now().toString(),
-      ...formData,
-      articleCount: 0,
-      createdAt: new Date().toISOString(),
+  // Load categories from Firebase
+  const loadCategories = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // First, try to seed initial categories if none exist
+      await categoryService.seedInitialCategories()
+      
+      const fetchedCategories = await categoryService.getAllCategoriesWithCounts()
+      setCategories(fetchedCategories)
+    } catch (err) {
+      setError('Failed to load categories. Please try again.')
+      console.error('Error loading categories:', err)
+    } finally {
+      setLoading(false)
     }
-    setCategories([newCategory, ...categories])
+  }
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setError(null)
+      await categoryService.createCategory(formData)
+      await loadCategories() // Refresh the list
     setFormData({ name: "", nameHindi: "", description: "", isActive: true })
     setIsCreateDialogOpen(false)
+    } catch (err) {
+      setError('Failed to create category. Please try again.')
+      console.error('Error creating category:', err)
+    }
   }
 
-  const handleEditCategory = (e: React.FormEvent) => {
+  const handleEditCategory = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingCategory) return
+    if (!editingCategory?.id) return
 
-    setCategories(categories.map(category =>
-      category.id === editingCategory.id
-        ? { ...category, ...formData }
-        : category
-    ))
+    try {
+      setError(null)
+      await categoryService.updateCategory(editingCategory.id, formData)
+      await loadCategories() // Refresh the list
     setFormData({ name: "", nameHindi: "", description: "", isActive: true })
     setEditingCategory(null)
+    } catch (err) {
+      setError('Failed to update category. Please try again.')
+      console.error('Error updating category:', err)
+    }
   }
 
-  const handleDeleteCategory = (id: string) => {
-    setCategories(categories.filter(category => category.id !== id))
+  const handleDeleteCategory = async (category: CategoryWithCount) => {
+    if (category.articleCount > 0) {
+      setError('Cannot delete category with existing articles. Please move or delete the articles first.')
+      return
+    }
+
+    if (!confirm(`Are you sure you want to delete "${category.name}"?`)) return
+
+    try {
+      setError(null)
+      if (category.id) {
+        await categoryService.deleteCategory(category.id)
+        await loadCategories() // Refresh the list
+      }
+    } catch (err) {
+      setError('Failed to delete category. Please try again.')
+      console.error('Error deleting category:', err)
+    }
   }
 
-  const openEditDialog = (category: Category) => {
+  const openEditDialog = (category: CategoryWithCount) => {
     setEditingCategory(category)
     setFormData({
       name: category.name,
@@ -126,12 +116,30 @@ const CategoryManagement = () => {
     })
   }
 
-  const toggleCategoryStatus = (id: string) => {
-    setCategories(categories.map(category =>
-      category.id === id
-        ? { ...category, isActive: !category.isActive }
-        : category
-    ))
+  const toggleCategoryStatus = async (category: CategoryWithCount) => {
+    try {
+      setError(null)
+      if (category.id) {
+        await categoryService.updateCategory(category.id, {
+          isActive: !category.isActive
+        })
+        await loadCategories() // Refresh the list
+      }
+    } catch (err) {
+      setError('Failed to update category status. Please try again.')
+      console.error('Error updating category status:', err)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Loading categories...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -204,6 +212,13 @@ const CategoryManagement = () => {
         </Dialog>
       </div>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Categories Overview */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -246,6 +261,13 @@ const CategoryManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {categories.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                No categories found. Create your first category!
+              </p>
+            </div>
+          ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -273,7 +295,7 @@ const CategoryManagement = () => {
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => toggleCategoryStatus(category.id)}
+                          onClick={() => toggleCategoryStatus(category)}
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           category.isActive
                             ? 'bg-green-100 text-green-800'
@@ -350,9 +372,10 @@ const CategoryManagement = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteCategory(category.id)}
+                            onClick={() => handleDeleteCategory(category)}
                           className="text-red-600 hover:text-red-700"
                           disabled={category.articleCount > 0}
+                            title={category.articleCount > 0 ? "Cannot delete category with articles" : "Delete category"}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -363,6 +386,7 @@ const CategoryManagement = () => {
               </TableBody>
             </Table>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

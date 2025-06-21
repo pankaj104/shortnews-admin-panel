@@ -33,6 +33,11 @@ service cloud.firestore {
     match /articles/{document} {
       allow read, write: if request.auth != null;
     }
+    
+    // Allow authenticated users to read/write categories
+    match /categories/{document} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
 ```
@@ -75,15 +80,30 @@ Your application should now be ready with:
 
 1. **Authentication**: Users can sign up, log in, and log out
 2. **News Management**: 
-   - Create new articles
+   - Create new articles with thumbnail images
    - Edit existing articles
    - Delete articles
    - Filter and search articles
    - Articles are stored in Cloud Firestore
-3. **Real-time Updates**: Changes are immediately reflected across all users
+3. **Category Management**:
+   - Create categories with English and Hindi names
+   - Edit existing categories
+   - Toggle category active/inactive status
+   - Delete categories (only if no articles use them)
+   - Automatic article count per category
+   - Multi-language support
+4. **Real-time Updates**: Changes are immediately reflected across all users
 
 ## Troubleshooting:
 
 - **Permission Denied**: Make sure your Firestore rules allow authenticated users to read/write
 - **Articles not loading**: Check browser console for errors and verify Firestore is enabled
-- **Authentication issues**: Ensure Email/Password authentication is enabled in Firebase Console 
+- **Categories not loading**: Verify Firestore collections `articles` and `categories` are accessible
+- **Cannot delete category**: Categories with existing articles cannot be deleted - move or delete articles first
+- **Authentication issues**: Ensure Email/Password authentication is enabled in Firebase Console
+
+## Collections Created:
+
+Your Firestore database will have these collections:
+- `articles` - Stores news articles with metadata
+- `categories` - Stores category information with multilingual support 

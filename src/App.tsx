@@ -36,11 +36,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <FirebaseCheck>
-          <BrowserRouter>
+        <BrowserRouter>
             <AuthProvider>
-              <Routes>
+          <Routes>
                 <Route path="/" element={<AuthRedirect />} />
-                <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/" element={
                   <ProtectedRoute>
@@ -48,14 +48,14 @@ const App = () => (
                   </ProtectedRoute>
                 }>
                   <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="news" element={<NewsManagement />} />
-                  <Route path="categories" element={<CategoryManagement />} />
-                  <Route path="users" element={<UserPreferences />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Route path="news" element={<NewsManagement />} />
+              <Route path="categories" element={<CategoryManagement />} />
+              <Route path="users" element={<UserPreferences />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
             </AuthProvider>
-          </BrowserRouter>
+        </BrowserRouter>
         </FirebaseCheck>
       </TooltipProvider>
     </ThemeProvider>

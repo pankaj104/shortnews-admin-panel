@@ -77,7 +77,7 @@ const NewsManagement = () => {
       setError(null)
       await newsService.updateArticle(editingArticle.id, articleData)
       await loadArticles() // Refresh the list
-      setEditingArticle(null)
+    setEditingArticle(null)
     } catch (err) {
       setError('Failed to update article. Please try again.')
       console.error('Error updating article:', err)
@@ -210,23 +210,23 @@ const NewsManagement = () => {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
                     <TableHead>Article</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Language</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Views</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredArticles.map((article) => (
-                    <TableRow key={article.id}>
-                      <TableCell className="font-medium">
+                  <TableHead>Category</TableHead>
+                  <TableHead>Language</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Views</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredArticles.map((article) => (
+                  <TableRow key={article.id}>
+                    <TableCell className="font-medium">
                         <div className="flex items-start space-x-3 max-w-md">
                           {article.thumbnail && (
                             <div className="flex-shrink-0">
@@ -248,69 +248,69 @@ const NewsManagement = () => {
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="truncate font-semibold">{article.title}</p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {article.summary}
-                            </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {article.summary}
+                        </p>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{article.category}</Badge>
-                      </TableCell>
-                      <TableCell>{article.language}</TableCell>
-                      <TableCell>{getStatusBadge(article.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Eye className="w-4 h-4 mr-1" />
-                          {article.views.toLocaleString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{article.category}</Badge>
+                    </TableCell>
+                    <TableCell>{article.language}</TableCell>
+                    <TableCell>{getStatusBadge(article.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Eye className="w-4 h-4 mr-1" />
+                        {article.views.toLocaleString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                         {article.createdAt instanceof Date 
                           ? article.createdAt.toLocaleDateString()
                           : article.createdAt?.toDate ? article.createdAt.toDate().toLocaleDateString() : new Date().toLocaleDateString()
                         }
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Dialog 
-                            open={editingArticle?.id === article.id} 
-                            onOpenChange={(open) => !open && setEditingArticle(null)}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingArticle(article)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Edit Article</DialogTitle>
-                              </DialogHeader>
-                              <NewsForm 
-                                initialData={editingArticle} 
-                                onSubmit={handleEditArticle}
-                              />
-                            </DialogContent>
-                          </Dialog>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Dialog 
+                          open={editingArticle?.id === article.id} 
+                          onOpenChange={(open) => !open && setEditingArticle(null)}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingArticle(article)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Edit Article</DialogTitle>
+                            </DialogHeader>
+                            <NewsForm 
+                              initialData={editingArticle} 
+                              onSubmit={handleEditArticle}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                             onClick={() => handleDeleteArticle(article.id!)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           )}
         </CardContent>
       </Card>

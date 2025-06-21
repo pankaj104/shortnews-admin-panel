@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { categoryService } from "@/lib/categoryService"
 
 interface NewsFormProps {
   initialData?: any
@@ -25,9 +26,28 @@ const NewsForm = ({ initialData, onSubmit }: NewsFormProps) => {
   })
 
   const [autoSummary, setAutoSummary] = useState(false)
+  const [categories, setCategories] = useState<string[]>([])
 
-  const categories = ["Politics", "Sports", "Technology", "Entertainment", "Business", "Health", "Science"]
   const languages = ["English", "Hindi"]
+
+  // Load categories from Firebase
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await categoryService.getCategories()
+        const activeCategories = fetchedCategories
+          .filter(cat => cat.isActive)
+          .map(cat => cat.name)
+        setCategories(activeCategories)
+      } catch (error) {
+        console.error('Error loading categories:', error)
+        // Fallback to default categories if Firebase fails
+        setCategories(["Politics", "Sports", "Technology", "Entertainment", "Business", "Health", "Science"])
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
